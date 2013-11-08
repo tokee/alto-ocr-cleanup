@@ -30,9 +30,11 @@ public class AnagramHashingTest extends TestCase {
     private static Log log = LogFactory.getLog(AnagramHashingTest.class);
 
     public static final File[] INPUT_FOLDERS = new File[] {
-            new File("alto_sample_tiny/"),
-//            new File("/home/te/projects/data/ninestars_alto"),
-            new File("/mnt/bulk/quack3/tilbud2_src/Ninestars_optionB3")
+//            new File("/home/te/projects/alto-ocr-cleanup/1795_small"),
+            new File("/home/te/projects/alto-ocr-cleanup/1795"),
+            new File("/home/te/projects/data/ninestars_alto"),
+            new File("/mnt/bulk/quack3/tilbud2_src/Ninestars_optionB3"),
+            new File("alto_sample_tiny/")
     };
 
     private File getInputFolder() {
@@ -53,7 +55,8 @@ public class AnagramHashingTest extends TestCase {
     }
 
     public void testDump() throws IOException {
-        final int NGRAM_MAX = 1;
+        final int NGRAM_MAX = 2;
+        final int MIN_LENGTH = 4;
 
         AnagramHashing te = new AnagramHashing();
         List<File> altos = new ArrayList<File>();
@@ -65,21 +68,33 @@ public class AnagramHashingTest extends TestCase {
             log.debug("Processing ALTO " + alto);
             for (String ts: te.splitAndPrune(te.getStrings(alto))) {
                 log.trace("- " + ts);
-                uniq.add(ts);
+                if (ts.length() >= MIN_LENGTH) {
+                    uniq.add(ts);
+                }
                 AnagramHashing.addToAlphabet(totalAlphabet, ts, NGRAM_MAX);
                 totalAlphabet.removeDuplicates(); // Prune regularly to prevent insane growth
             }
         }
 
         // Create an entry for all unique terms
+        log.debug("Extracted " + uniq.size() + " unique term of length>=" + MIN_LENGTH + ", ngram-max=" + NGRAM_MAX
+                  + ", total alphabet size=" + totalAlphabet.getSize());
         for (String u: uniq) {
             long h = AnagramUtil.hash(u);
             te.anagramDict.add(h, u);
         }
 
+        log.debug("Created anagram dictionary with " + te.anagramDict.getDict().size() + " primary entries");
         // Iterate terms and find like terms
         Alphabet focusAlphabet = new Alphabet();
+
+        int uCount = uniq.size();
+        int each = uCount < 100 ? 1 : uCount / 100;
+        int index = 0;
         for (String u: uniq) {
+            if (index++ % each == 0) {
+                System.out.print(".");
+            }
             focusAlphabet.clear();
             focusAlphabet.add(0);
             AnagramHashing.addToAlphabet(focusAlphabet, u, NGRAM_MAX);
@@ -88,11 +103,12 @@ public class AnagramHashingTest extends TestCase {
             for (int focusIndex = 0 ; focusIndex < focusAlphabet.getSize() ; focusIndex++) {
                 for (int totalIndex = 0 ; totalIndex < totalAlphabet.getSize() ; totalIndex++) {
                     final long newHash = uHash - focusAlphabet.get(focusIndex) + totalAlphabet.get(totalIndex);
-                    te.anagramDict.add(newHash, u);
+                    te.anagramDict.addIfExists(newHash, u);
                 }
             }
         }
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, 1);
+        System.out.println("");
+        //AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
+        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 1);
     }
 }

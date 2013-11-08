@@ -141,7 +141,7 @@ public class AnagramHashing {
             AnagramDictionary.Word word = entry.getValue();
             Set<String> secondaries = maxLev < 0 ? word.getSecondaries() : word.getSecondaries(maxLev);
 
-            if (secondaries.size() < minTerms-1) {
+            if (secondaries.size() + 1 < minTerms) {
                 continue;
             }
             System.out.print(word.getPrimary() + ":");

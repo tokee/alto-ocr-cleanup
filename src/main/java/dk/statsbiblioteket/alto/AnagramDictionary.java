@@ -39,6 +39,13 @@ public class AnagramDictionary {
         dict.put(hash, new Word(hash, word));
     }
 
+    public void addIfExists(Long hash, String word) {
+        Word w = dict.get(hash);
+        if (w != null) {
+            w.add(word);
+        }
+    }
+
     public Map<Long, Word> getDict() {
         return dict;
     }
@@ -54,7 +61,14 @@ public class AnagramDictionary {
         }
 
         public void add(String secondary) {
+            if (primary.equals(secondary)) {
+                return;
+            }
             secondaries.add(secondary);
+        }
+
+        public Long getHash() {
+            return hash;
         }
 
         public String getPrimary() {
@@ -73,6 +87,10 @@ public class AnagramDictionary {
                 }
             }
             return pruned;
+        }
+
+        public int size() {
+            return 1 + secondaries.size();
         }
     }
 }
