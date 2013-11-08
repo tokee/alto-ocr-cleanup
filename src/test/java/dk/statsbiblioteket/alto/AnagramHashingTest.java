@@ -70,6 +70,8 @@ public class AnagramHashingTest extends TestCase {
             for (String ts: te.splitAndPrune(te.getStrings(alto))) {
                 log.trace("- " + ts);
                 if (ts.length() >= MIN_LENGTH) {
+                    long h = AnagramUtil.hash(ts);
+                    te.anagramDict.addPrimary(h, ts);
                     uniq.add(ts);
                 }
                 AnagramHashing.addToAlphabet(totalAlphabet, ts, NGRAM_MAX);
@@ -80,10 +82,6 @@ public class AnagramHashingTest extends TestCase {
         // Create an entry for all unique terms
         log.debug("Extracted " + uniq.size() + " unique term of length>=" + MIN_LENGTH + ", ngram-max=" + NGRAM_MAX
                   + ", total alphabet size=" + totalAlphabet.getSize());
-        for (String u: uniq) {
-            long h = AnagramUtil.hash(u);
-            te.anagramDict.addPrimary(h, u);
-        }
 
         log.debug("Created anagram dictionary with " + te.anagramDict.primarySize() + " primary entries");
         // Iterate terms and find like terms
@@ -110,6 +108,6 @@ public class AnagramHashingTest extends TestCase {
         }
         System.out.println("");
         //AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 1, true);
+        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 2, true);
     }
 }

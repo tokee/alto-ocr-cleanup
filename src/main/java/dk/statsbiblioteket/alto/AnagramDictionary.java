@@ -66,7 +66,7 @@ public class AnagramDictionary {
             return;
         }
         for (Word w: words) {
-            w.add(word);
+            w.addNoCountPrimary(word);
         }
     }
 
@@ -85,6 +85,14 @@ public class AnagramDictionary {
         public void add(String secondary) {
             if (primary.equals(secondary)) {
                 primaryOccurrences++;
+                return;
+            }
+            secondaries.add(secondary);
+            secondaryOccurrences++;
+        }
+
+        public void addNoCountPrimary(String secondary) {
+            if (primary.equals(secondary)) {
                 return;
             }
             secondaries.add(secondary);

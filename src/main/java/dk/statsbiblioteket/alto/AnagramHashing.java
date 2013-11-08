@@ -139,6 +139,7 @@ public class AnagramHashing {
             AnagramDictionary anagramDictionary, int minTerms, int maxLev, boolean onlyStrongPrimaries) {
         System.out.println("minTerms=" + minTerms + ", maxLev=" + (maxLev < 0 ? "N/A" : maxLev));
 
+        List<Pair<Integer, String>> values = new ArrayList<Pair<Integer, String>>();
         primaryLoop:
         for (Map.Entry<String, AnagramDictionary.Word> entry: anagramDictionary.getPrimaryDict().entrySet()) {
             AnagramDictionary.Word word = entry.getValue();
@@ -147,20 +148,45 @@ public class AnagramHashing {
             if (secondaries.size() + 1 < minTerms) {
                 continue;
             }
-            if (onlyStrongPrimaries) {
-                for (String secondary: secondaries) {
-                    if (anagramDictionary.get(secondary).getPrimaryOccurrences() > word.getPrimaryOccurrences()) {
+            String output =  word.getPrimary() + "(" + word.getPrimaryOccurrences() + "):";
+            for (String secondary: secondaries) {
+                int secondaryOccurrences = anagramDictionary.get(secondary).getPrimaryOccurrences();
+                if (onlyStrongPrimaries) {
+                    if (secondaryOccurrences > word.getPrimaryOccurrences()) {
                         continue primaryLoop;
                     }
                 }
+                output += " " + secondary + "(" + secondaryOccurrences + ")";
             }
-
-            System.out.print(word.getPrimary() + "(" + word.getPrimaryOccurrences() + "):");
-            for (String term: secondaries) {
-                System.out.print(" " + term);
-            }
-            System.out.println("");
+            values.add(new Pair<Integer, String>(word.getPrimaryOccurrences(), output));
+        }
+        Collections.sort(values);
+        Collections.reverse(values);
+        for (Pair<Integer, String> value: values) {
+            System.out.println(value.getPayload());
         }
     }
 
+    private static class Pair<S extends Comparable<S>, T> implements Comparable<Pair<S, T>> {
+        private final S sortValue;
+        private final T payload;
+
+        private Pair(S sortValue, T payload) {
+            this.sortValue = sortValue;
+            this.payload = payload;
+        }
+
+        public S getSortValue() {
+            return sortValue;
+        }
+
+        public T getPayload() {
+            return payload;
+        }
+
+        @Override
+        public int compareTo(Pair<S, T> o) {
+            return sortValue.compareTo(o.getSortValue());
+        }
+    }
 }
