@@ -75,7 +75,7 @@ public class AnagramHashing {
         List<String> textStrings = new ArrayList<String>();
         while (m.find()) {
             textStrings.add(m.group(1).
-                    replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&amp;", "&"));
+                    replace("&gt;", ">").replace("&lt;", "<").replace("&quot;", "\"").replace("&apos;", "'").replace("&amp;", "&"));
         }
         return textStrings;
     }
@@ -135,16 +135,27 @@ public class AnagramHashing {
 
     public AnagramDictionary anagramDict = new AnagramDictionary();
 
-    public static void dumpAnagramTerms(AnagramDictionary anagramDictionary, int minTerms, int maxLev) {
+    public static void dumpAnagramTerms(
+            AnagramDictionary anagramDictionary, int minTerms, int maxLev, boolean onlyStrongPrimaries) {
         System.out.println("minTerms=" + minTerms + ", maxLev=" + (maxLev < 0 ? "N/A" : maxLev));
-        for (Map.Entry<Long, AnagramDictionary.Word> entry: anagramDictionary.getDict().entrySet()) {
+
+        primaryLoop:
+        for (Map.Entry<String, AnagramDictionary.Word> entry: anagramDictionary.getPrimaryDict().entrySet()) {
             AnagramDictionary.Word word = entry.getValue();
             Set<String> secondaries = maxLev < 0 ? word.getSecondaries() : word.getSecondaries(maxLev);
 
             if (secondaries.size() + 1 < minTerms) {
                 continue;
             }
-            System.out.print(word.getPrimary() + ":");
+            if (onlyStrongPrimaries) {
+                for (String secondary: secondaries) {
+                    if (anagramDictionary.get(secondary).getPrimaryOccurrences() > word.getPrimaryOccurrences()) {
+                        continue primaryLoop;
+                    }
+                }
+            }
+
+            System.out.print(word.getPrimary() + "(" + word.getPrimaryOccurrences() + "):");
             for (String term: secondaries) {
                 System.out.print(" " + term);
             }

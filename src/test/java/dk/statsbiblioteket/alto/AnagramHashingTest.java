@@ -32,6 +32,7 @@ public class AnagramHashingTest extends TestCase {
     public static final File[] INPUT_FOLDERS = new File[] {
 //            new File("/home/te/projects/alto-ocr-cleanup/1795_small"),
             new File("/home/te/projects/alto-ocr-cleanup/1795"),
+            new File("/home/te/projects/data/ninestars_alto_1795"),
             new File("/home/te/projects/data/ninestars_alto"),
             new File("/mnt/bulk/quack3/tilbud2_src/Ninestars_optionB3"),
             new File("alto_sample_tiny/")
@@ -81,10 +82,10 @@ public class AnagramHashingTest extends TestCase {
                   + ", total alphabet size=" + totalAlphabet.getSize());
         for (String u: uniq) {
             long h = AnagramUtil.hash(u);
-            te.anagramDict.add(h, u);
+            te.anagramDict.addPrimary(h, u);
         }
 
-        log.debug("Created anagram dictionary with " + te.anagramDict.getDict().size() + " primary entries");
+        log.debug("Created anagram dictionary with " + te.anagramDict.primarySize() + " primary entries");
         // Iterate terms and find like terms
         Alphabet focusAlphabet = new Alphabet();
 
@@ -103,12 +104,12 @@ public class AnagramHashingTest extends TestCase {
             for (int focusIndex = 0 ; focusIndex < focusAlphabet.getSize() ; focusIndex++) {
                 for (int totalIndex = 0 ; totalIndex < totalAlphabet.getSize() ; totalIndex++) {
                     final long newHash = uHash - focusAlphabet.get(focusIndex) + totalAlphabet.get(totalIndex);
-                    te.anagramDict.addIfExists(newHash, u);
+                    te.anagramDict.addDerivative(newHash, u);
                 }
             }
         }
         System.out.println("");
         //AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 1);
+        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 1, true);
     }
 }
