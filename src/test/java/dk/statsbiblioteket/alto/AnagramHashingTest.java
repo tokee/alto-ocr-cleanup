@@ -30,6 +30,7 @@ public class AnagramHashingTest extends TestCase {
     private static Log log = LogFactory.getLog(AnagramHashingTest.class);
 
     public static final File[] INPUT_FOLDERS = new File[] {
+            new File("alto_sample_32/"),
 //            new File("/home/te/projects/alto-ocr-cleanup/1795_small"),
             new File("/home/te/projects/alto-ocr-cleanup/1795"),
             new File("/home/te/projects/data/ninestars_alto_1795"),
@@ -55,7 +56,41 @@ public class AnagramHashingTest extends TestCase {
                                            + "Please provide at least one folder containing .alto.xml-files");
     }
 
-    public void testDump() throws IOException {
+    public void disabledTestGenerateSampleWords() throws IOException {
+        final int CHUNK = 100;
+
+        List<String> words = new ArrayList<String>(100000);
+        AnagramHashing te = new AnagramHashing();
+        List<File> altos = new ArrayList<File>();
+        te.getALTOs(altos, getInputFolder());
+        for (File alto: altos) {
+            log.debug("Processing ALTO " + alto);
+            for (String ts: te.splitAndPrune(te.getStrings(alto))) {
+                words.add(ts);
+            }
+        }
+        Collections.shuffle(words);
+
+        int pos = 0;
+        StringBuilder sb = new StringBuilder();
+        while (pos < words.size()) {
+            sb.setLength(0);
+            sb.append("<String CONTENT=\"");
+            int end = Math.min(words.size(), pos + CHUNK);
+            for (int i = pos ; i < end ; i++) {
+                if (i > pos) {
+                    sb.append(' ');
+                }
+                sb.append(words.get(i).replace("&", "&amp;").replace("'", "&apos;").replace("\"", "&quot;").
+                        replace("<", "&lt;").replace(">", "&gt;"));
+            }
+            sb.append("\"/>");
+            System.out.println(sb.toString());
+            pos = end;
+        }
+    }
+
+    public void testMajor() throws IOException {
         final int NGRAM_MAX = 2;
         final int MIN_LENGTH = 4;
 
@@ -108,6 +143,10 @@ public class AnagramHashingTest extends TestCase {
         }
         System.out.println("");
         //AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, 2, true);
+        AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, Integer.MAX_VALUE, 2, true);
+        System.out.println("\nWords that have no similar words");
+        AnagramHashing.dumpAnagramTerms(te.anagramDict, 1, 1, 2, true);
+
+        // TODO: Output words that are not similar to anything besides themselves
     }
 }

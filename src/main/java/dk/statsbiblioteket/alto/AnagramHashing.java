@@ -135,9 +135,10 @@ public class AnagramHashing {
 
     public AnagramDictionary anagramDict = new AnagramDictionary();
 
-    public static void dumpAnagramTerms(
-            AnagramDictionary anagramDictionary, int minTerms, int maxLev, boolean onlyStrongPrimaries) {
-        System.out.println("minTerms=" + minTerms + ", maxLev=" + (maxLev < 0 ? "N/A" : maxLev));
+    public static void dumpAnagramTerms(AnagramDictionary anagramDictionary, int minVariants, int maxVariants,
+                                        int maxLev, boolean onlyStrongPrimaries) {
+        System.out.println("minTerms=" + minVariants + ", maxTerms=" + maxVariants
+                           + ", maxLev=" + (maxLev < 0 ? "N/A" : maxLev));
 
         List<Pair<Integer, String>> values = new ArrayList<Pair<Integer, String>>();
         primaryLoop:
@@ -145,7 +146,7 @@ public class AnagramHashing {
             AnagramDictionary.Word word = entry.getValue();
             Set<String> secondaries = maxLev < 0 ? word.getSecondaries() : word.getSecondaries(maxLev);
 
-            if (secondaries.size() + 1 < minTerms) {
+            if (secondaries.size() + 1 < minVariants || secondaries.size() +1 > maxVariants) {
                 continue;
             }
             String output =  word.getPrimary() + "(" + word.getPrimaryOccurrences() + "):";
