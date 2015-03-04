@@ -18,8 +18,7 @@ import junit.framework.TestCase;
 import org.apache.commons.logging.LogFactory;
 import org.apache.commons.logging.Log;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 
@@ -90,6 +89,44 @@ public class AnagramHashingTest extends TestCase {
         }
     }
 
+    public void testDump() throws IOException {
+        final File INPUT = new File("/home/te/projects/alto-ocr-cleanup/raw.txt");
+        final int NGRAM_MAX = 2;
+        final int MIN_LENGTH = 4;
+        final int MAX_LINES = 100000;
+
+        if (!INPUT.exists()) {
+            return;
+        }
+        FileInputStream fis = new FileInputStream(INPUT);
+        BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+        AnagramHashing te = new AnagramHashing();
+        Set<String> uniq = new LinkedHashSet<String>();
+        Alphabet totalAlphabet = new Alphabet();
+        totalAlphabet.add(0);
+        String line;
+        List<String> ll = new ArrayList<String>(1);
+        ll.add("Dummy");
+        int count = 0;
+        while (count < MAX_LINES && (line = br.readLine()) != null) {
+            if (count++ % 10000 == 0) {
+                System.out.println(count + ": " + line);
+            }
+            ll.set(0, line);
+            for (String ts: te.splitAndPrune(ll)) {
+                if (ts.length() >= MIN_LENGTH) {
+                    long h = AnagramUtil.hash(ts);
+                    te.anagramDict.addPrimary(h, ts);
+                    uniq.add(ts);
+                }
+                AnagramHashing.addToAlphabet(totalAlphabet, ts, NGRAM_MAX);
+                totalAlphabet.removeDuplicates(); // Prune regularly to prevent insane growth
+            }
+        }
+        outputAnagram(NGRAM_MAX, MIN_LENGTH, te, uniq, totalAlphabet, false);
+        fis.close();
+    }
+
     public void testMajor() throws IOException {
         final int NGRAM_MAX = 2;
         final int MIN_LENGTH = 4;
@@ -113,7 +150,10 @@ public class AnagramHashingTest extends TestCase {
                 totalAlphabet.removeDuplicates(); // Prune regularly to prevent insane growth
             }
         }
+        outputAnagram(NGRAM_MAX, MIN_LENGTH, te, uniq, totalAlphabet, true);
+    }
 
+    private void outputAnagram(int NGRAM_MAX, int MIN_LENGTH, AnagramHashing te, Set<String> uniq, Alphabet totalAlphabet, boolean dumpSingle) {
         // Create an entry for all unique terms
         log.debug("Extracted " + uniq.size() + " unique term of length>=" + MIN_LENGTH + ", ngram-max=" + NGRAM_MAX
                   + ", total alphabet size=" + totalAlphabet.getSize());
@@ -144,9 +184,9 @@ public class AnagramHashingTest extends TestCase {
         System.out.println("");
         //AnagramHashing.dumpAnagramTerms(te.anagramDict, 4, -1);
         AnagramHashing.dumpAnagramTerms(te.anagramDict, 2, Integer.MAX_VALUE, 2, true);
-        System.out.println("\nWords that have no similar words");
-        AnagramHashing.dumpAnagramTerms(te.anagramDict, 1, 1, 2, true);
-
-        // TODO: Output words that are not similar to anything besides themselves
+        if (dumpSingle) {
+            System.out.println("\nWords that have no similar words");
+            AnagramHashing.dumpAnagramTerms(te.anagramDict, 1, 1, 2, true);
+        }
     }
 }
