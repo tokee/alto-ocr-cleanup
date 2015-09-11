@@ -112,7 +112,7 @@ public class AnagramHashingTest extends TestCase {
             if (count++ % 10000 == 0) {
                 System.out.println(count + ": " + line);
             }
-            ll.set(0, line);
+            ll.set(0, deEntity(line));
             for (String ts: te.splitAndPrune(ll)) {
                 if (ts.length() >= MIN_LENGTH) {
                     long h = AnagramUtil.hash(ts);
@@ -125,6 +125,10 @@ public class AnagramHashingTest extends TestCase {
         }
         outputAnagram(NGRAM_MAX, MIN_LENGTH, te, uniq, totalAlphabet, false);
         fis.close();
+    }
+
+    private String deEntity(String line) {
+        return line.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&amp;", "&");
     }
 
     public void testMajor() throws IOException {
